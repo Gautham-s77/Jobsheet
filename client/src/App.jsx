@@ -2,13 +2,15 @@ import { useState } from "react";
 import Navbar from "./components/Navbar.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Profile from "./pages/Profile.jsx";
-import "./index.css";
+import LoginPage from "./pages/LoginPage.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
 
 /**
  * Main App Component
- * Routes between Dashboard and Profile pages
+ * Routes between Dashboard and Profile pages (requires Firebase auth)
  */
 function App() {
+  const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState("dashboard");
 
   const renderPage = () => {
@@ -20,6 +22,18 @@ function App() {
         return <Dashboard />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center font-body text-muted-foreground text-sm">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="min-h-[800px] min-h-screen w-full bg-background flex flex-col font-body">

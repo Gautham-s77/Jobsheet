@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserRound } from "lucide-react";
 import { useProfile } from "../hooks/useProfile.js";
 
@@ -15,6 +15,14 @@ const Profile = () => {
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setFormData({
+      name: profile.name || "",
+      email: profile.email || "",
+      phone: profile.phone || "",
+    });
+  }, [profile.name, profile.email, profile.phone, profile._id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

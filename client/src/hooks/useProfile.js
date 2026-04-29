@@ -1,21 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getProfile, updateProfile } from "../services/profileService.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /**
- * Custom hook to manage user profile
- * Handles fetching and updating profile information
+ * Custom hook to manage user profile for the signed-in user
  */
 export const useProfile = () => {
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     phone: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch profile
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
+    if (!user) {
+      setProfile({ name: "", email: "", phone: "" });
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const data = await getProfile();
@@ -26,9 +31,19 @@ export const useProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  // Update profile
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setProfile({ name: "", email: "", phone: "" });
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    fetchProfile();
+  }, [user, authLoading, fetchProfile]);
+
   const updateUserProfile = async (profileData) => {
     setLoading(true);
     try {
@@ -44,14 +59,9 @@ export const useProfile = () => {
     }
   };
 
-  // Fetch profile on mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   return {
     profile,
-    loading,
+    loading: authLoading || loading,
     error,
     fetchProfile,
     updateUserProfile,

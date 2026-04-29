@@ -1,12 +1,14 @@
 import Job from "../models/Job.js";
 
 /**
- * Get all jobs
+ * Get all jobs for the authenticated user
  * @route GET /api/jobs
  */
 export const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find().sort({ createdAt: -1 });
+    const jobs = await Job.find({ userId: req.user.uid }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(jobs);
   } catch (error) {
     console.error("Error fetching jobs:", error);
@@ -22,12 +24,12 @@ export const createJob = async (req, res) => {
   try {
     const { companyName, role, jobLink, source, status, notes } = req.body;
 
-    // Validate required fields
     if (!companyName || !role || !jobLink || !source) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newJob = new Job({
+      userId: req.user.uid,
       companyName,
       role,
       jobLink,
@@ -45,7 +47,7 @@ export const createJob = async (req, res) => {
 };
 
 /**
- * Update a job by ID
+ * Update a job by ID (only if owned by user)
  * @route PUT /api/jobs/:id
  */
 export const updateJob = async (req, res) => {
@@ -53,9 +55,8 @@ export const updateJob = async (req, res) => {
     const { id } = req.params;
     const { companyName, role, jobLink, source, status, notes } = req.body;
 
-    // Find and update the job
-    const updatedJob = await Job.findByIdAndUpdate(
-      id,
+    const updatedJob = await Job.findOneAndUpdate(
+      { _id: id, userId: req.user.uid },
       {
         companyName,
         role,
@@ -64,7 +65,7 @@ export const updateJob = async (req, res) => {
         status,
         notes,
       },
-      { new: true, runValidators: true } // new: true returns updated document
+      { new: true, runValidators: true }
     );
 
     if (!updatedJob) {
@@ -79,14 +80,17 @@ export const updateJob = async (req, res) => {
 };
 
 /**
- * Delete a job by ID
+ * Delete a job by ID (only if owned by user)
  * @route DELETE /api/jobs/:id
  */
 export const deleteJob = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedJob = await Job.findByIdAndDelete(id);
+    const deletedJob = await Job.findOneAndDelete({
+      _id: id,
+      userId: req.user.uid,
+    });
 
     if (!deletedJob) {
       return res.status(404).json({ message: "Job not found" });

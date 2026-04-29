@@ -1,16 +1,14 @@
 import Profile from "../models/Profile.js";
 
 /**
- * Get user profile
+ * Get user profile for the authenticated user
  * @route GET /api/profile
  */
 export const getProfile = async (req, res) => {
   try {
-    // For MVP, we'll just get the first profile (single user)
-    let profile = await Profile.findOne();
+    const profile = await Profile.findOne({ userId: req.user.uid });
 
     if (!profile) {
-      // Return default profile if none exists
       return res.status(200).json({
         _id: null,
         name: "",
@@ -27,36 +25,27 @@ export const getProfile = async (req, res) => {
 };
 
 /**
- * Update user profile
+ * Create or update profile for the authenticated user
  * @route PUT /api/profile
  */
 export const updateProfile = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
 
-    // Validate required fields
     if (!name || !email || !phone) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Find existing profile or create a new one
-    let profile = await Profile.findOne();
-
-    if (profile) {
-      // Update existing profile
-      profile.name = name;
-      profile.email = email;
-      profile.phone = phone;
-      await profile.save();
-    } else {
-      // Create new profile if doesn't exist
-      profile = new Profile({
-        name,
-        email,
-        phone,
-      });
-      await profile.save();
-    }
+    const profile = await Profile.findOneAndUpdate(
+      { userId: req.user.uid },
+      { userId: req.user.uid, name, email, phone },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      }
+    );
 
     res.status(200).json(profile);
   } catch (error) {

@@ -2,10 +2,16 @@ import mongoose from "mongoose";
 
 /**
  * Profile Schema
- * Stores user profile information for referral message generation
+ * Stores user profile information for referral message generation (one per Firebase user)
  */
 const profileSchema = new mongoose.Schema(
   {
+    userId: {
+      type: String,
+      required: [true, "User ID is required"],
+      unique: true,
+      index: true,
+    },
     name: {
       type: String,
       required: [true, "Name is required"],

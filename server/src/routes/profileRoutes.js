@@ -3,8 +3,11 @@ import {
   getProfile,
   updateProfile,
 } from "../controllers/profileController.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 /**
  * Profile Routes

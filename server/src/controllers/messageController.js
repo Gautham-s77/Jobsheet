@@ -3,7 +3,7 @@ import Profile from "../models/Profile.js";
 import { generateReferralMessage } from "../services/messageService.js";
 
 /**
- * Generate referral message for a job
+ * Generate referral message for a job (must belong to user; profile same user)
  * @route POST /api/message/generate
  * @body {jobId, contactName}
  */
@@ -11,28 +11,24 @@ export const generateMessage = async (req, res) => {
   try {
     const { jobId, contactName } = req.body;
 
-    // Validate input
     if (!jobId || !contactName) {
       return res.status(400).json({
         message: "Job ID and contact name are required",
       });
     }
 
-    // Fetch job details
-    const job = await Job.findById(jobId);
+    const job = await Job.findOne({ _id: jobId, userId: req.user.uid });
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Fetch user profile
-    const profile = await Profile.findOne();
+    const profile = await Profile.findOne({ userId: req.user.uid });
     if (!profile) {
       return res.status(400).json({
         message: "User profile not found. Please set up your profile first.",
       });
     }
 
-    // Generate message using template
     const message = generateReferralMessage(job, profile, contactName);
 
     res.status(200).json({ message });

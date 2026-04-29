@@ -1,15 +1,12 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import apiClient from "./apiClient.js";
 
 /**
  * API Service for User Profile
  */
 
-// Get user profile
 export const getProfile = async () => {
   try {
-    const response = await axios.get(`${API_URL}/profile`);
+    const response = await apiClient.get("profile");
     return response.data;
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -17,10 +14,9 @@ export const getProfile = async () => {
   }
 };
 
-// Update user profile
 export const updateProfile = async (profileData) => {
   try {
-    const response = await axios.put(`${API_URL}/profile`, profileData);
+    const response = await apiClient.put("profile", profileData);
     return response.data;
   } catch (error) {
     console.error("Error updating profile:", error);

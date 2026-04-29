@@ -1,7 +1,10 @@
 import express from "express";
 import { generateMessage } from "../controllers/messageController.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 /**
  * Message Routes

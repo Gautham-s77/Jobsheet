@@ -1,14 +1,12 @@
+import "./loadEnv.js";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
 import { connectDB } from "./utils/db.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
-
-// Load environment variables from .env file
-dotenv.config();
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +40,7 @@ app.get("/health", (req, res) => {
 app.use("/api/jobs", jobRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/message", messageRoutes);
+app.use("/api/user", userRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

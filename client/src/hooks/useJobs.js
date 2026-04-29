@@ -1,17 +1,27 @@
-import { useState, useEffect } from "react";
-import { getJobs, createJob, updateJob, deleteJob } from "../services/jobService.js";
+import { useState, useEffect, useCallback } from "react";
+import {
+  getJobs,
+  createJob,
+  updateJob,
+  deleteJob,
+} from "../services/jobService.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /**
- * Custom hook to manage jobs
- * Handles fetching, creating, updating, and deleting jobs
+ * Custom hook to manage jobs for the signed-in user
  */
 export const useJobs = () => {
+  const { user, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all jobs
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
+    if (!user) {
+      setJobs([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const data = await getJobs();
@@ -23,13 +33,23 @@ export const useJobs = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  // Add new job
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setJobs([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    fetchJobs();
+  }, [user, authLoading, fetchJobs]);
+
   const addJob = async (jobData) => {
     try {
       const newJob = await createJob(jobData);
-      setJobs([newJob, ...jobs]);
+      setJobs((prev) => [newJob, ...prev]);
       setError(null);
       return newJob;
     } catch (err) {
@@ -38,11 +58,12 @@ export const useJobs = () => {
     }
   };
 
-  // Update existing job
   const editJob = async (jobId, jobData) => {
     try {
       const updatedJob = await updateJob(jobId, jobData);
-      setJobs(jobs.map((job) => (job._id === jobId ? updatedJob : job)));
+      setJobs((prev) =>
+        prev.map((job) => (job._id === jobId ? updatedJob : job))
+      );
       setError(null);
       return updatedJob;
     } catch (err) {
@@ -51,11 +72,10 @@ export const useJobs = () => {
     }
   };
 
-  // Remove job
   const removeJob = async (jobId) => {
     try {
       await deleteJob(jobId);
-      setJobs(jobs.filter((job) => job._id !== jobId));
+      setJobs((prev) => prev.filter((job) => job._id !== jobId));
       setError(null);
     } catch (err) {
       setError(err.message || "Failed to delete job");
@@ -63,14 +83,9 @@ export const useJobs = () => {
     }
   };
 
-  // Fetch jobs on mount
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
   return {
     jobs,
-    loading,
+    loading: authLoading || loading,
     error,
     fetchJobs,
     addJob,

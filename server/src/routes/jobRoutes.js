@@ -5,8 +5,11 @@ import {
   updateJob,
   deleteJob,
 } from "../controllers/jobController.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 /**
  * Job Routes

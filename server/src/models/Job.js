@@ -6,6 +6,11 @@ import mongoose from "mongoose";
  */
 const jobSchema = new mongoose.Schema(
   {
+    userId: {
+      type: String,
+      required: [true, "User ID is required"],
+      index: true,
+    },
     companyName: {
       type: String,
       required: [true, "Company name is required"],
@@ -23,12 +28,25 @@ const jobSchema = new mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ["LinkedIn", "Naukri", "Indeed", "Other"],
+      enum: [
+        "LinkedIn",
+        "Naukri",
+        "Indeed",
+        "Referral",
+        "Company Site",
+        "Other",
+      ],
       required: [true, "Source is required"],
     },
     status: {
       type: String,
-      enum: ["Saved", "Applied", "Referral Requested", "Interview", "Rejected"],
+      enum: [
+        "Saved",
+        "Applied",
+        "Referral Requested",
+        "Interview",
+        "Rejected",
+      ],
       default: "Saved",
     },
     notes: {
@@ -38,7 +56,7 @@ const jobSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
