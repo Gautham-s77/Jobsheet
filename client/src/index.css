@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply font-body text-foreground bg-background;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center font-body font-medium focus:outline-none disabled:opacity-50 disabled:pointer-events-none transition-colors;
+  }
+
+  .btn-primary {
+    @apply btn px-6 py-3 text-base rounded-full gap-2 bg-primary text-primary-foreground shadow-lg shadow-primary-soft;
+  }
+
+  .btn-primary-sm {
+    @apply btn px-5 py-2 rounded-full text-sm bg-primary text-primary-foreground;
+  }
+
+  .btn-secondary {
+    @apply btn px-6 py-3 text-base rounded-full gap-2 bg-secondary text-secondary-foreground border border-transparent hover:opacity-90;
+  }
+
+  .btn-ghost {
+    @apply btn p-2 rounded-full bg-transparent text-muted-foreground hover:bg-neutral-bg;
+  }
+
+  .btn-ghost-danger {
+    @apply btn p-2 rounded-full bg-transparent text-danger hover:bg-red-50;
+  }
+
+  .btn-danger-solid {
+    @apply btn px-6 py-3 text-base rounded-full bg-danger text-white hover:opacity-90;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-border rounded-xl bg-surface text-foreground font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+  }
+
+  .card {
+    @apply bg-surface rounded-2xl border border-border shadow-sm p-6;
+  }
+
+  .page-shell {
+    @apply flex-1 w-full max-w-5xl mx-auto px-6 py-12 flex flex-col gap-8;
+  }
+}
