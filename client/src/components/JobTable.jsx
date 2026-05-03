@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, MessageSquare, Trash2 } from "lucide-react";
+import { Pencil, MessageSquare, Trash2, ExternalLink } from "lucide-react";
 import { generateMessage } from "../services/messageService.js";
 import MessageModal from "./MessageModal.jsx";
 
@@ -36,7 +36,7 @@ function statusBadgeClass(status) {
  * JobTable Component
  * Display all jobs in a table format with actions
  */
-const JobTable = ({ jobs, onEdit, onDelete, loading }) => {
+const JobTable = ({ jobs, onEdit, onDelete, onStatusChange, loading }) => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [generatedMessage, setGeneratedMessage] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -117,9 +117,22 @@ const JobTable = ({ jobs, onEdit, onDelete, loading }) => {
                     <div className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-headings font-bold text-sm shrink-0">
                       {companyInitial(job.companyName)}
                     </div>
-                    <span className="font-body font-medium text-foreground">
-                      {job.companyName}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-body font-medium text-foreground">
+                        {job.companyName}
+                      </span>
+                      {job.jobLink && (
+                        <a
+                          href={job.jobLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                          title="View Job Link"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 font-body text-foreground text-sm">
@@ -135,13 +148,19 @@ const JobTable = ({ jobs, onEdit, onDelete, loading }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium font-body ${statusBadgeClass(
+                  <select
+                    value={job.status}
+                    onChange={(e) => onStatusChange && onStatusChange(job, e.target.value)}
+                    className={`cursor-pointer border-none outline-none focus:ring-2 focus:ring-primary px-3 py-1 rounded-full text-xs font-medium font-body ${statusBadgeClass(
                       job.status
                     )}`}
                   >
-                    {job.status}
-                  </span>
+                    <option value="Saved">Saved</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Referral Requested">Referral Requested</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-1">

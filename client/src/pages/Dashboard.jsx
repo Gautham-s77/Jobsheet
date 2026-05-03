@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { LayoutDashboard, Plus, FileUp, ArrowLeft } from "lucide-react";
 import JobTable from "../components/JobTable.jsx";
 import JobForm from "../components/JobForm.jsx";
@@ -14,6 +14,33 @@ const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [showImport, setShowImport] = useState(false);
+  const [hideRejected, setHideRejected] = useState(false);
+  const [sortByStatus, setSortByStatus] = useState(false);
+
+  const processedJobs = useMemo(() => {
+    let result = [...jobs];
+    
+    if (hideRejected) {
+      result = result.filter(job => job.status !== 'Rejected');
+    }
+    
+    if (sortByStatus) {
+      const statusOrder = {
+        "Interview": 1,
+        "Referral Requested": 2,
+        "Applied": 3,
+        "Saved": 4,
+        "Rejected": 5
+      };
+      result.sort((a, b) => {
+        const orderA = statusOrder[a.status] || 99;
+        const orderB = statusOrder[b.status] || 99;
+        return orderA - orderB;
+      });
+    }
+    
+    return result;
+  }, [jobs, hideRejected, sortByStatus]);
 
   const handleAddJob = async (jobData) => {
     try {
@@ -50,6 +77,14 @@ const Dashboard = () => {
   const handleEditClick = (job) => {
     setEditingJob(job);
     setShowForm(true);
+  };
+
+  const handleStatusChange = async (job, newStatus) => {
+    try {
+      await editJob(job._id, { ...job, status: newStatus });
+    } catch {
+      alert("Failed to update status. Please try again.");
+    }
   };
 
   if (error) {
@@ -122,11 +157,33 @@ const Dashboard = () => {
             </div>
           </div>
 
+          <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center bg-surface p-3 px-4 rounded-lg border border-border shadow-sm">
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium font-body text-foreground">
+              <input
+                type="checkbox"
+                checked={hideRejected}
+                onChange={(e) => setHideRejected(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              Hide Rejected Jobs
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium font-body text-foreground">
+              <input
+                type="checkbox"
+                checked={sortByStatus}
+                onChange={(e) => setSortByStatus(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              Sort by Status
+            </label>
+          </div>
+
           <div className="mt-4">
             <JobTable
-              jobs={jobs}
+              jobs={processedJobs}
               onEdit={handleEditClick}
               onDelete={handleDeleteJob}
+              onStatusChange={handleStatusChange}
               loading={loading}
             />
           </div>
