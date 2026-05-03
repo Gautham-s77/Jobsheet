@@ -1,4 +1,80 @@
-import Job from "../models/Job.js";
+// server/controllers/jobController.js
+import fs from 'fs';
+import csv from 'csv-parser';
+import xlsx from 'xlsx';
+import Job from '../models/Job.js'; // Assuming you have a Mongoose model named Job
+
+export const importJobs = async (req, res) => {
+  try {
+    // req.file is provided by Multer containing the uploaded file info
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload a file' });
+    }
+
+    const filePath = req.file.path;
+    const fileExtension = req.file.originalname.split('.').pop().toLowerCase();
+    let importedData = [];
+
+    // --- LOGIC FOR CSV FILES ---
+    if (fileExtension === 'csv') {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (row) => {
+          // This runs for every row in the CSV
+          importedData.push(row);
+        })
+        .on('end', async () => {
+          // Finished reading the file, now save to database
+          await saveToDatabase(importedData, res, req.user.uid);
+          // Delete the temporary file
+          fs.unlinkSync(filePath); 
+        });
+    } 
+    // --- LOGIC FOR EXCEL FILES ---
+    else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+      // Read the excel file
+      const workbook = xlsx.readFile(filePath);
+      // Get the name of the first sheet
+      const sheetName = workbook.SheetNames[0];
+      // Convert the sheet to JSON
+      importedData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      
+      await saveToDatabase(importedData, res, req.user.uid);
+      // Delete the temporary file
+      fs.unlinkSync(filePath);
+    } else {
+      // If it's not CSV or Excel
+      fs.unlinkSync(filePath);
+      return res.status(400).json({ message: 'Invalid file format. Please upload a CSV or Excel file.' });
+    }
+
+  } catch (error) {
+    console.error('Import error:', error);
+    res.status(500).json({ message: 'Failed to import data', error: error.message });
+  }
+};
+
+// Helper function to insert data into MongoDB
+const saveToDatabase = async (data, res, userId) => {
+  try {
+    // Map imported fields to your schema structure and inject the user ID
+    const formattedData = data.map(item => ({
+      userId: userId,
+      companyName: item.companyName || item['Company Name'] || 'Unknown Company',
+      role: item.role || item['Role'] || 'Unknown Role',
+      jobLink: item.jobLink || item['Job Link'] || 'https://example.com',
+      source: item.source || item['Source'] || 'Other',
+      status: item.status || item['Status'] || 'Saved',
+      notes: item.notes || item['Notes'] || ''
+    }));
+
+    // Insert many documents at once
+    await Job.insertMany(formattedData);
+    res.status(200).json({ message: `Successfully imported ${data.length} records!` });
+  } catch (err) {
+    res.status(500).json({ message: 'Error saving to database', error: err.message });
+  }
+};
 
 /**
  * Get all jobs for the authenticated user

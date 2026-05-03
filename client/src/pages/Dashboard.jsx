@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { LayoutDashboard, Plus } from "lucide-react";
+import { LayoutDashboard, Plus, FileUp, ArrowLeft } from "lucide-react";
 import JobTable from "../components/JobTable.jsx";
 import JobForm from "../components/JobForm.jsx";
+import DataImporter from "../components/DataImporter.jsx";
 import { useJobs } from "../hooks/useJobs.js";
 
 /**
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const { jobs, loading, error, addJob, editJob, removeJob } = useJobs();
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [showImport, setShowImport] = useState(false);
 
   const handleAddJob = async (jobData) => {
     try {
@@ -69,6 +71,21 @@ const Dashboard = () => {
             setEditingJob(null);
           }}
         />
+      ) : showImport ? (
+        <div className="flex flex-col gap-4">
+          <button 
+            onClick={() => {
+              setShowImport(false);
+              // Force a refresh of the jobs list when returning to dashboard
+              window.location.reload();
+            }} 
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground self-start mb-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+          <DataImporter />
+        </div>
       ) : (
         <>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -85,14 +102,24 @@ const Dashboard = () => {
                 your career journey in one place.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
-              className="btn-primary self-start md:self-auto"
-            >
-              <Plus className="w-5 h-5 shrink-0" strokeWidth={2} />
-              Add New Job
-            </button>
+            <div className="flex items-center gap-3 self-start md:self-auto">
+              <button
+                type="button"
+                onClick={() => setShowImport(true)}
+                className="btn-secondary flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md font-medium transition-colors border border-gray-200 shadow-sm"
+              >
+                <FileUp className="w-5 h-5 shrink-0" strokeWidth={2} />
+                Import Data
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="btn-primary"
+              >
+                <Plus className="w-5 h-5 shrink-0" strokeWidth={2} />
+                Add New Job
+              </button>
+            </div>
           </div>
 
           <div className="mt-4">

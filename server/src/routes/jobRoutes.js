@@ -1,9 +1,11 @@
 import express from "express";
+import multer from 'multer';
 import {
   getJobs,
   createJob,
   updateJob,
   deleteJob,
+  importJobs,
 } from "../controllers/jobController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -23,5 +25,10 @@ router.get("/", getJobs);
 router.post("/", createJob);
 router.put("/:id", updateJob);
 router.delete("/:id", deleteJob);
+
+const upload = multer({ dest: 'uploads/' });
+
+// The 'file' argument in upload.single() must match the field name sent from the frontend
+router.post('/import', upload.single('file'), importJobs);
 
 export default router;
